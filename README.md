@@ -9,7 +9,7 @@ Example
 
 ```python
 from scgiwsgi import WSGIServer
-WSGIServer(application).run(port=7777, max_children=5)
+WSGIServer(application).run(port=4000, max_children=5)
 ```
 
 
