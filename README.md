@@ -1,5 +1,4 @@
 scgiwsgi
-
 =============
 
 A WSGI server based on scgi_server(http://python.ca/scgi/).
