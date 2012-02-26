@@ -20,3 +20,15 @@ Install Prerequisites
 ```
 pip install scgi
 ```
+
+
+Nginx.conf Example
+-------------------
+
+```
+location / {
+    include scgi_params;
+    client_max_body_size 10m;
+    scgi_pass localhost:4000;
+}
+```
