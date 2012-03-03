@@ -1,11 +1,16 @@
 # https://github.com/dengzhp/scgiwsgi
+import os
+import socket
 import sys
+
 from scgi import scgi_server
+from scgi import passfd
 
 __all__ = ['WSGIServer']
 
 
-application = None
+_application = None
+_logger = None
 
 def build_wsgi_environ(scgi_env, scgi_input):
     environ = {}
@@ -26,8 +31,33 @@ def build_wsgi_environ(scgi_env, scgi_input):
     environ['SCRIPT_NAME'] = ''
     return environ
 
-
 class WsgiHandler(scgi_server.SCGIHandler):
+
+    def serve(self):
+        while 1:
+            try:
+                os.write(self.parent_fd, "1") # indicates that child is ready
+                fd = passfd.recvfd(self.parent_fd)
+            except (IOError, OSError):
+                if _logger:
+                    _logger.exception('exiting')
+                # parent probably exited  (EPIPE comes thru as OSError)
+                raise SystemExit
+            conn = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
+            # Make sure the socket is blocking.  Apparently, on FreeBSD the
+            # socket is non-blocking.  I think that's an OS bug but I don't
+            # have the resources to track it down.
+            conn.setblocking(1)
+            os.close(fd)
+            try:
+                self.handle_connection(conn)
+            except Exception:
+                import logging
+                if _logger:
+                    _logger.exception('exception occured')
+                else:
+                    raise
+
     def handle_connection(self, conn):
         input = conn.makefile("r")
         output = conn.makefile("w")
@@ -71,7 +101,7 @@ class WsgiHandler(scgi_server.SCGIHandler):
             return wsgi_write
 
         try:
-            result = application(environ, start_response)
+            result = _application(environ, start_response)
 
             try:
                 for data in result:
@@ -91,9 +121,10 @@ class WsgiHandler(scgi_server.SCGIHandler):
 
 
 class WSGIServer:
-    def __init__(self, app):
-        global application
-        application = app
+    def __init__(self, app, logger):
+        global _application, _logger
+        _application = app
+        _logger = logger
 
     def run(self, host='', port=4000, max_children=5):
         scgi_server.SCGIServer(handler_class=WsgiHandler,
@@ -104,5 +135,7 @@ class WSGIServer:
 
 if __name__ == "__main__":
     from app import application
-    WSGIServer(application).run(port=7777)
+    import logging
+    logger = logging.getLogger()
+    WSGIServer(application, logger).run(port=7777)
 
