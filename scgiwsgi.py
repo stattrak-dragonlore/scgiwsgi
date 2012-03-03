@@ -52,7 +52,6 @@ class WsgiHandler(scgi_server.SCGIHandler):
             try:
                 self.handle_connection(conn)
             except Exception:
-                import logging
                 if _logger:
                     _logger.exception('exception occured')
                 else:
