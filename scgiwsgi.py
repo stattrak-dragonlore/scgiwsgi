@@ -8,6 +8,8 @@ from scgi import passfd
 
 __all__ = ['WSGIServer']
 
+__version__ = "0.1"
+
 
 _application = None
 _logger = None
@@ -120,7 +122,7 @@ class WsgiHandler(scgi_server.SCGIHandler):
 
 
 class WSGIServer:
-    def __init__(self, app, logger):
+    def __init__(self, app, logger=None):
         global _application, _logger
         _application = app
         _logger = logger
@@ -136,5 +138,5 @@ if __name__ == "__main__":
     from app import application
     import logging
     logger = logging.getLogger()
-    WSGIServer(application, logger).run(port=7777)
+    WSGIServer(application, logger).run(port=4000)
 

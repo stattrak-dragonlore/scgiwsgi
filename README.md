@@ -9,16 +9,18 @@ Example
 
 ```python
 from scgiwsgi import WSGIServer
+from yourapp import application
+
 WSGIServer(application).run(port=4000, max_children=5)
 ```
 
 
 
-Install Prerequisites
+Installation
 ----------------------
 
 ```
-pip install scgi
+pip install scgiwsgi
 ```
 
 
@@ -28,7 +30,6 @@ Nginx.conf Example
 ```
 location / {
     include scgi_params;
-    client_max_body_size 10m;
     scgi_pass localhost:4000;
 }
 ```
